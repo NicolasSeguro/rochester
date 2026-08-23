@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Rochester · Panel de operaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#F2F1EE; --panel:#FBFAF8; --ink:#1B1A17; --muted:#6E6A62;
+    --line:#E4E1DB; --line-strong:#D6D2CA;
+    --accent:#F04E0F; --accent-soft:#FDEBE3;
+    --ok:#2E7D5B; --ok-soft:#E4F1EA;
+    --wait:#B7791F; --wait-soft:#FaF0DC;
+    --no:#C0392B; --no-soft:#F8E4E1;
+    --radius:14px; --radius-sm:10px;
+    --shadow:0 1px 2px rgba(27,26,23,.04),0 8px 30px rgba(27,26,23,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"DM Mono",monospace}
+  button{font-family:inherit;cursor:pointer}
+  ::selection{background:var(--accent-soft)}
+
+  /* layout */
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  aside{background:var(--panel);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  main{padding:30px 38px 80px;max-width:1180px}
+
+  /* brand */
+  .brand{display:flex;align-items:baseline;gap:2px;font-family:"Bebas Neue",sans-serif;font-size:30px;letter-spacing:.5px;line-height:1}
+  .brand b{color:var(--accent)}
+  .brand .ops{color:var(--muted);font-size:14px;letter-spacing:3px;margin-left:6px;transform:translateY(-2px)}
+  .brand-sub{font-size:12px;color:var(--muted);margin-top:8px}
+  .brand-sub b{color:var(--ink)}
+
+  /* nav */
+  nav{margin-top:28px;display:flex;flex-direction:column;gap:2px}
+  .nav-group{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin:16px 10px 6px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--radius-sm);color:var(--ink);border:none;background:none;width:100%;text-align:left;font-size:14.5px;font-weight:500}
+  .nav-item .ic{width:17px;text-align:center;opacity:.75}
+  .nav-item:hover{background:var(--bg)}
+  .nav-item.active{background:var(--ink);color:#fff}
+  .nav-item.active .ic{opacity:1}
+  .nav-item .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:11px;font-weight:600;border-radius:20px;padding:1px 8px;min-width:20px;text-align:center}
+  .nav-item.active .badge{background:#fff;color:var(--ink)}
+
+  .aside-foot{margin-top:auto;font-size:11px;color:var(--muted);line-height:1.7}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle;box-shadow:0 0 0 3px var(--ok-soft)}
+
+  /* header row */
+  .topbar{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  .empsel{margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line-strong);border-radius:22px;padding:5px 6px 5px 15px}
+  .empsel span{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .empsel select{border:none;background:var(--ink);color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;border-radius:18px;padding:6px 12px;cursor:pointer;outline:none}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600}
+  .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .fbtn{border:1px solid var(--line-strong);background:var(--panel);border-radius:20px;padding:7px 15px;font-size:13px;color:var(--muted);font-weight:500}
+  .fbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .fbtn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .emptytab{padding:34px;text-align:center;color:var(--muted);font-size:14px}
+  .emp.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+  .emp{cursor:pointer}
+  .emp:hover{border-color:var(--line-strong)}
+  .bell{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:15px}
+
+  h1{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.5px;font-size:42px;line-height:1.02;margin:0 0 6px}
+  .lead{color:var(--muted);max-width:60ch;margin:0 0 22px}
+  .section{display:none;animation:fade .25s ease}
+  .section.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 15px;box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:12px;color:var(--muted);letter-spacing:.3px}
+  .kpi .num{font-family:"Bebas Neue",sans-serif;font-size:40px;line-height:1;margin:8px 0 4px}
+  .kpi .note{font-size:12px;color:var(--muted)}
+  .kpi .note.up{color:var(--ok)}
+  .kpi.accent{border-color:#F3C7B4}
+  .kpi.accent .num{color:var(--accent)}
+
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media(max-width:1080px){.grid2{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:center;gap:9px;padding:15px 18px;border-bottom:1px solid var(--line)}
+  .card-h h3{margin:0;font-size:14px;letter-spacing:.4px}
+  .card-h .link{margin-left:auto;font-size:12.5px;color:var(--accent);background:none;border:none}
+  .card-b{padding:16px 18px}
+
+  /* alert / task items */
+  .item{display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);width:100%;text-align:left;background:none;border-left:none;border-right:none;border-top:none}
+  .item:last-child{border-bottom:none}
+  .item.click{cursor:pointer}
+  .item.click:hover{background:var(--bg)}
+  .item .mk{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+  .mk.no{background:var(--no)} .mk.wait{background:var(--wait)} .mk.ok{background:var(--ok)}
+  .item .tx{flex:1}
+  .item .tx b{font-weight:600}
+  .item .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .item .chev{color:var(--muted);align-self:center;font-size:16px}
+  .tag{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:20px;font-weight:600;align-self:center;white-space:nowrap}
+  .tag.auto{background:var(--bg);color:var(--muted)}
+  .tag.urg{background:var(--accent-soft);color:var(--accent)}
+
+  /* table */
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0}
+  td{padding:13px 16px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--bg)}
+  .num-cell{font-family:"DM Mono",monospace;font-variant-numeric:tabular-nums}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.wait{background:var(--wait-soft);color:var(--wait)}
+  .pill.no{background:var(--no-soft);color:var(--no)}
+  .chn{color:var(--muted);font-size:13px}
+
+  .hint{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);margin:14px 2px 0}
+  .hint .k{background:var(--panel);border:1px solid var(--line-strong);border-radius:6px;padding:1px 7px;font-size:12px}
+
+  /* proveedores */
+  .prov{padding:15px 18px;border-bottom:1px solid var(--line);cursor:pointer}
+  .prov:last-child{border-bottom:none}
+  .prov:hover{background:var(--bg)}
+  .prov-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .prov-top .nm{font-weight:600}
+  .prov-top .nm small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+  .prov-top .amt{font-family:"DM Mono",monospace;font-size:13px;white-space:nowrap}
+  .bar{height:7px;background:var(--bg);border-radius:20px;margin:10px 0 6px;overflow:hidden}
+  .bar>span{display:block;height:100%;border-radius:20px;background:var(--ok)}
+  .bar.hi>span{background:var(--accent)}
+  .prov-meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+
+  /* fields */
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:var(--radius-sm);overflow:hidden}
+  .fields div{background:var(--panel);padding:11px 13px}
+  .fields .fl{font-size:11px;color:var(--muted);letter-spacing:.3px}
+  .fields .fv{font-family:"DM Mono",monospace;font-size:13px;margin-top:2px}
+
+  /* empresas */
+  .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
+  .emp{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .emp h4{margin:0 0 2px;font-size:16px}
+  .emp .cuit{font-family:"DM Mono",monospace;font-size:12px;color:var(--muted)}
+  .emp .rows{margin-top:13px;display:flex;flex-direction:column;gap:7px}
+  .emp .r{display:flex;justify-content:space-between;font-size:13px}
+  .emp .r span{color:var(--muted)}
+  .emp .r b{font-family:"DM Mono",monospace}
+  .emp .r.big b{color:var(--accent)}
+
+  .callout{display:flex;gap:12px;background:var(--panel);border:1px dashed var(--line-strong);border-radius:var(--radius);padding:15px 18px;margin-top:20px;font-size:13.5px;color:var(--muted)}
+  .callout .em{font-size:19px}
+  .callout b{color:var(--ink)}
+
+  /* asistente */
+  .chat{max-width:760px}
+  .bubble{display:flex;gap:11px;margin-bottom:14px}
+  .bubble .ai{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .bubble .msg{background:var(--panel);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:12px 15px;box-shadow:var(--shadow)}
+  .bubble.me{flex-direction:row-reverse}
+  .bubble.me .ai{background:var(--ink)}
+  .bubble.me .msg{border-radius:14px 4px 14px 14px;background:var(--ink);color:#fff;border-color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{border:1px solid var(--line-strong);background:var(--panel);border-radius:20px;padding:8px 14px;font-size:13px}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* flujo */
+  .flow{display:flex;flex-direction:column;gap:0;max-width:760px}
+  .step{display:flex;gap:16px;padding:16px 0}
+  .step .n{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;font-family:"Bebas Neue",sans-serif;font-size:20px;flex:0 0 auto}
+  .step.stop .n{background:var(--no)}
+  .step .st b{font-weight:600}
+  .step .st .d{color:var(--muted);font-size:13.5px;margin-top:2px}
+  .step .arrow{color:var(--line-strong);text-align:center;font-size:18px;padding:0 0 0 8px}
+  .results{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .res{flex:1;min-width:150px;border-radius:var(--radius-sm);padding:11px 13px;font-size:12.5px;border:1px solid}
+  .res.ok{background:var(--ok-soft);border-color:#BEE0CE;color:var(--ok)}
+  .res.wait{background:var(--wait-soft);border-color:#EBD9AE;color:var(--wait)}
+  .res.no{background:var(--no-soft);border-color:#EEC7C1;color:var(--no)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(27,26,23,.42);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:40px 20px;z-index:50;overflow:auto}
+  .overlay.show{display:flex}
+  .modal{background:var(--bg);border-radius:18px;max-width:760px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.3);animation:pop .2s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+  .modal-h{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .modal-h h3{margin:0;font-size:16px}
+  .modal-h .x{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font-size:16px}
+  .modal-b{padding:22px}
+
+  /* comprobante replica */
+  .cbte{background:#fff;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;font-size:13px}
+  .cbte-top{display:flex;border-bottom:2px solid var(--ink)}
+  .cbte-top>div{padding:14px 16px}
+  .cbte-emisor{flex:1;border-right:1px solid var(--line)}
+  .cbte-letter{width:70px;display:grid;place-items:center;border-right:1px solid var(--line);text-align:center}
+  .cbte-letter .L{font-family:"Bebas Neue",sans-serif;font-size:38px;line-height:.8}
+  .cbte-letter .cod{font-size:10px;color:var(--muted)}
+  .cbte-fact{flex:1.1;text-align:right}
+  .cbte-emisor .rz{font-weight:700;font-size:15px}
+  .cbte-emisor .ln,.cbte-fact .ln{color:var(--muted);font-size:12px;margin-top:2px}
+  .cbte-fact .big{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:.5px}
+  .cbte-rec{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .cbte-rec .fl{font-size:11px;color:var(--muted)}
+  .cbte-rec .fv{font-family:"DM Mono",monospace;font-size:12.5px}
+  .cbte table{font-size:12.5px}
+  .cbte th{position:static;background:#fafafa}
+  .cbte-tot{padding:12px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+  .cbte-tot .row{display:flex;gap:24px;font-family:"DM Mono",monospace;font-size:13px}
+  .cbte-tot .row.total{font-size:16px;font-weight:700;border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+  .cbte-cae{background:#fafafa;padding:9px 16px;font-family:"DM Mono",monospace;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  .modal-sec{margin-top:20px}
+  .modal-sec .t{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .checks{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .check{background:var(--panel);display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13.5px}
+  .check .s{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;flex:0 0 auto}
+  .s.ok{background:var(--ok)} .s.no{background:var(--no)} .s.na{background:var(--line-strong)}
+  .check .cl{flex:1}
+  .check .cv{color:var(--muted);font-size:12px;font-family:"DM Mono",monospace}
+  .verdict{display:flex;align-items:center;gap:11px;padding:14px 16px;border-radius:10px;margin-top:14px;font-size:14px}
+  .verdict.ok{background:var(--ok-soft);color:var(--ok)} .verdict.wait{background:var(--wait-soft);color:var(--wait)} .verdict.no{background:var(--no-soft);color:var(--no)}
+  .verdict b{font-weight:700}
+  .extract{background:var(--ink);color:#EDEBE6;border-radius:10px;padding:14px 16px;font-family:"DM Mono",monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow:auto}
+  .extract .k{color:#F0956B}
+
+  @media(max-width:820px){
+    .app{grid-template-columns:1fr}
+    aside{position:static;height:auto;flex-direction:column;border-right:none;border-bottom:1px solid var(--line)}
+    .aside-foot{display:none}
+    main{padding:22px 18px 60px}
+    .kpis{grid-template-columns:1fr 1fr}
+    nav{flex-direction:row;flex-wrap:wrap}
+    .nav-group{width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">ROCHESTER<b>.</b><span class="ops">OPS</span></div>
+    <div class="brand-sub">Grupo · <b>5 razones sociales</b></div>
+    <nav id="nav">
+      <div class="nav-group">Operación</div>
+      <button class="nav-item active" data-view="resumen"><span class="ic">◧</span>Resumen</button>
+      <button class="nav-item" data-view="facturas"><span class="ic">🧾</span>Facturas<span class="badge" id="badgeFact">2</span></button>
+      <button class="nav-item" data-view="proveedores"><span class="ic">🏷️</span>Proveedores</button>
+      <button class="nav-item" data-view="empresas"><span class="ic">🏨</span>Empresas</button>
+      <div class="nav-group">Inteligencia</div>
+      <button class="nav-item" data-view="asistente"><span class="ic">✦</span>Asistente</button>
+      <button class="nav-item" data-view="flujo"><span class="ic">⇄</span>Flujo de decisión</button>
+    </nav>
+    <div class="aside-foot">
+      entorno · staging<br>
+      <span class="dot"></span>datos de muestra<br>
+      v0.3 · vitrina
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <div class="eyebrow" id="crumb">Operación · Resumen</div>
+      </div>
+      <label class="empsel" title="Cambiar de razón social">
+        <span>Razón social</span>
+        <select id="empSel">
+          <option value="all">Todas (grupo)</option>
+          <option value="classic">RH Classic</option>
+          <option value="calafate">Rochester Calafate</option>
+          <option value="bariloche">Rochester Bariloche</option>
+          <option value="lobos">Rochester Lobos</option>
+          <option value="concept">RH Concept</option>
+        </select>
+      </label>
+      <button class="bell" title="Notificaciones">🔔</button>
+      <div class="avatar">WR</div>
+    </div>
+
+    <!-- RESUMEN -->
+    <section class="section show" id="resumen">
+      <h1 id="greet">Buen día, Walter</h1>
+      <p class="lead" id="resumenLead">El asistente procesó las facturas de la noche. Tocá cualquier ítem para ver el comprobante que lo origina, o cambiá de razón social arriba a la derecha para ver una en particular.</p>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Procesadas · nov</div><div class="num" id="kProc">148</div><div class="note" id="kProcNote">total del grupo</div></div>
+        <div class="kpi accent"><div class="lbl">Cargadas en CQR</div><div class="num" id="kCarg">132</div><div class="note" id="kCargNote">89% automáticas</div></div>
+        <div class="kpi"><div class="lbl">En espera</div><div class="num" id="kEsp">9</div><div class="note">alta de proveedor / revisión</div></div>
+        <div class="kpi"><div class="lbl">Rechazadas</div><div class="num" id="kRech">7</div><div class="note">devueltas con causal</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><h3>Alertas activas</h3><button class="link" data-view="facturas">ver facturas →</button></div>
+          <div id="alertList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Tareas del día</h3></div>
+          <div id="taskList"></div>
+        </div>
+      </div>
+
+      <div class="callout"><span class="em">🗄️</span><div>Conexión con <b>CQR</b> definida: lectura por base espejo (réplica al instante) y carga por el API de CQR. En esta vitrina los datos son de muestra para validar el flujo antes de conectar producción.</div></div>
+    </section>
+
+    <!-- FACTURAS -->
+    <section class="section" id="facturas">
+      <h1>Facturas</h1>
+      <p class="lead">Todo lo que entró por los canales oficiales, con su resultado. La IA extrae; las reglas validan y deciden.</p>
+      <div class="filters" id="factFilters">
+        <button class="fbtn active" data-f="all">Todas</button>
+        <button class="fbtn" data-f="ok">Autorizadas</button>
+        <button class="fbtn" data-f="wait">En espera</button>
+        <button class="fbtn" data-f="no">Rechazadas</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Proveedor</th><th>Empresa</th><th>Monto</th><th>Canal</th><th>Fecha</th><th>Resultado</th></tr></thead>
+          <tbody id="factBody"></tbody>
+        </table>
+      </div>
+      <div class="hint"><span>👆</span> Tocá una fila para abrir el <b>comprobante original</b>, ver lo que leyó la IA y el checklist de controles.</div>
+    </section>
+
+    <!-- PROVEEDORES -->
+    <section class="section" id="proveedores">
+      <h1>Proveedores</h1>
+      <p class="lead">Topes por factura y por mes, con el acumulado en vivo. Los topes viven en el maestro de proveedores de CQR.</p>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><h3>Acumulado del mes vs tope</h3></div>
+          <div id="provList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Campos reusados del maestro CQR</h3></div>
+          <div class="card-b">
+            <p style="margin-top:0;color:var(--muted);font-size:13px">Aprovechamos campos alfanuméricos que hoy no se usan para guardar la parametría, sin Excels paralelos.</p>
+            <div class="fields">
+              <div><div class="fl">Mail autorizado a facturar</div><div class="fv">compras@…</div></div>
+              <div><div class="fl">Mail de notificación de pago</div><div class="fv">cobranzas@…</div></div>
+              <div><div class="fl">CBU para transferencia</div><div class="fv">••••••••4471</div></div>
+              <div><div class="fl">Imputación contable / CC</div><div class="fv">4.1.02.03</div></div>
+              <div><div class="fl">Tope por factura</div><div class="fv">$500.000</div></div>
+              <div><div class="fl">Tope por mes</div><div class="fv">$2.000.000</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout"><span class="em">🔒</span><div>Proveedor nuevo <b>no se autocarga</b>: se deriva a un alta manual con doble control. Control interno, no automatización ciega.</div></div>
+    </section>
+
+    <!-- EMPRESAS -->
+    <section class="section" id="empresas">
+      <h1>Empresas del grupo</h1>
+      <p class="lead">Un solo mail de recepción para las 5 razones sociales. La empresa destino se resuelve por el CUIT receptor de cada factura.</p>
+      <div class="emp-grid" id="empGrid"></div>
+      <div class="callout"><span class="em">🎯</span><div>Regla de ruteo: la factura llega a <b>facturas@rochester</b> y el sistema lee el CUIT del receptor para asignarla a una de las 5 razones sociales. Sin bandejas separadas.</div></div>
+    </section>
+
+    <!-- ASISTENTE -->
+    <section class="section" id="asistente">
+      <h1>Asistente</h1>
+      <p class="lead">Preguntale a tu operación en lenguaje natural. Lee del mismo lugar donde vive todo: facturas, proveedores, topes y alertas.</p>
+      <div class="chat" id="chat">
+        <div class="bubble"><div class="ai">✦</div><div class="msg">Hola Walter. Puedo contarte qué pasó con las facturas, qué está en espera, qué proveedores están cerca del tope o qué se rechazó y por qué. Probá una pregunta de abajo.</div></div>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip">¿Qué está en espera?</button>
+        <button class="chip">¿Algún proveedor cerca del tope?</button>
+        <button class="chip">¿Qué se rechazó hoy?</button>
+        <button class="chip">Resumen del día</button>
+      </div>
+    </section>
+
+    <!-- FLUJO -->
+    <section class="section" id="flujo">
+      <h1>Flujo de decisión</h1>
+      <p class="lead">Cómo se decide antes de cargar en CQR. La IA nunca decide pagos: extrae y propone; las reglas validan y autorizan.</p>
+      <div class="flow">
+        <div class="step stop"><div class="n">0</div><div class="st"><b>Gate de identidad del remitente</b><div class="d">¿El mail/WhatsApp está habilitado? Si no, rebota sin leer la factura. <i>Corta acá si falla.</i></div></div></div>
+        <div class="arrow">▾</div>
+        <div class="step"><div class="n">1</div><div class="st"><b>Extracción con IA</b><div class="d">PDF, foto o link → JSON estructurado. Split de multi-factura y dedup.</div></div></div>
+        <div class="arrow">▾</div>
+        <div class="step"><div class="n">2</div><div class="st"><b>Batería de controles → checklist</b><div class="d">Tipo y sumas · empresa por CUIT · proveedor · topes por factura y por mes.</div></div></div>
+        <div class="arrow">▾</div>
+        <div class="step"><div class="n">3</div><div class="st"><b>Tres resultados</b>
+          <div class="results">
+            <div class="res ok">Autorizada → carga en CQR</div>
+            <div class="res wait">En espera → alta de proveedor</div>
+            <div class="res no">Rechazada → vuelve con causales</div>
+          </div>
+        </div></div>
+      </div>
+      <div class="callout"><span class="em">🧠</span><div>Un mismo mail con varias facturas puede terminar en varias autorizadas, alguna en espera y alguna rechazada. El resultado vuelve <b>por factura</b>, no por mail.</div></div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-h"><h3 id="mTitle">Comprobante</h3><button class="x" id="mClose">✕</button></div>
+    <div class="modal-b" id="mBody"></div>
+  </div>
+</div>
+
+<script>
+const money = n => "$" + n.toLocaleString("es-AR");
+const CANAL = {mail:"✉ mail", wsp:"💬 wsp", link:"🔗 link", pdf:"📄 pdf"};
+
+// --- datos de muestra ---
+// Nombres de las 5 razones sociales — fuente única, cambiar acá se refleja en todo el panel.
+// CUIT: de muestra hasta cargar los reales.
+const EMP = {
+  classic:{nombre:"RH Classic", cuit:"30-71234567-8", facturas:61, cargadas:57, espera:2, rech:2, monto:"$8,4M"},
+  calafate:{nombre:"Rochester Calafate", cuit:"30-71234512-3", facturas:34, cargadas:31, espera:1, rech:2, monto:"$4,1M"},
+  bariloche:{nombre:"Rochester Bariloche", cuit:"30-71234598-1", facturas:28, cargadas:24, espera:3, rech:1, monto:"$3,3M"},
+  lobos:{nombre:"Rochester Lobos", cuit:"30-71234533-9", facturas:17, cargadas:14, espera:2, rech:1, monto:"$1,6M"},
+  concept:{nombre:"RH Concept", cuit:"30-71234577-4", facturas:8, cargadas:6, espera:1, rech:1, monto:"$0,9M"},
+};
+// estado de la vista
+const state = {emp:"all", resFilter:"all"};
+
+const F = [
+  {id:1, prov:"Frigorífico del Sur", emp:"classic", monto:412800, canal:"mail", fecha:"08/11", res:"ok",
+   tipo:"A", pv:"0003", nro:"00012487", cae:"74112233445566", emi:"08/11/2025", rubro:"carne / mercadería", cc:"4.1.02.03",
+   items:[["Media res novillo x 3","kg 210",341157]], remit:"compras@frigosur.com.ar"},
+  {id:2, prov:"Distribuidora Andina", emp:"calafate", monto:188240, canal:"mail", fecha:"08/11", res:"ok",
+   tipo:"A", pv:"0007", nro:"00003321", cae:"74100011223344", emi:"08/11/2025", rubro:"alimentos", cc:"4.1.02.05",
+   items:[["Almacén y secos - pedido semanal","varios",155570]], remit:"ventas@andina.com"},
+  {id:3, prov:"Lavadero Patagonia", emp:"bariloche", monto:96500, canal:"wsp", fecha:"08/11", res:"wait",
+   tipo:"C", pv:"0001", nro:"00000045", cae:"74122200011133", emi:"08/11/2025", rubro:"lavandería", cc:"—",
+   items:[["Servicio de lavandería - blancos","mes",96500]], remit:"+54 9 294 5xx xxxx", nuevo:true},
+  {id:4, prov:"Estudio Conciliador Paz", emp:"concept", monto:240000, canal:"wsp", fecha:"07/11", res:"ok",
+   tipo:"C", pv:"0002", nro:"00000912", cae:"74133344455566", emi:"07/11/2025", rubro:"legales", cc:"4.3.01.01",
+   items:[["Honorarios profesionales - octubre","mes",240000]], remit:"estudio@paz-abogados.com"},
+  {id:5, prov:"Camuzzi Gas", emp:"bariloche", monto:74190, canal:"link", fecha:"07/11", res:"ok",
+   tipo:"B", pv:"0055", nro:"01298743", cae:"74144455566677", emi:"06/11/2025", rubro:"servicio público", cc:"4.2.01.02",
+   items:[["Consumo de gas - período 10/25","",61314]], remit:"facturacion@camuzzi.com.ar", servicio:true},
+  {id:6, prov:"A&B Insumos", emp:"classic", monto:520000, canal:"mail", fecha:"07/11", res:"no", causa:"remitente",
+   tipo:"A", pv:"0004", nro:"00007781", cae:"—", emi:"07/11/2025", rubro:"A&B", cc:"4.1.02.03",
+   items:[["Insumos gastronomía","varios",429752]], remit:"rrhh@rochester"},
+  {id:7, prov:"Frigorífico del Sur", emp:"classic", monto:690000, canal:"mail", fecha:"06/11", res:"no", causa:"tope",
+   tipo:"A", pv:"0003", nro:"00012501", cae:"74155566677788", emi:"06/11/2025", rubro:"carne / mercadería", cc:"4.1.02.03",
+   items:[["Media res novillo x 5","kg 355",570248]], remit:"compras@frigosur.com.ar"},
+  {id:8, prov:"Insumos Hoteleros Lobos", emp:"lobos", monto:132400, canal:"pdf", fecha:"06/11", res:"ok",
+   tipo:"A", pv:"0009", nro:"00001102", cae:"74166677788899", emi:"06/11/2025", rubro:"amenities", cc:"4.1.03.01",
+   items:[["Amenities y descartables","varios",109421]], remit:"pedidos@insumoslobos.com"},
+  {id:9, prov:"Edenor", emp:"lobos", monto:58700, canal:"link", fecha:"05/11", res:"ok",
+   tipo:"B", pv:"0060", nro:"00987612", cae:"74177788899900", emi:"05/11/2025", rubro:"servicio público", cc:"4.2.01.01",
+   items:[["Energía eléctrica - período 10/25","",48512]], remit:"facturacion@edenor.com", servicio:true},
+  {id:10, prov:"Ferretería del Lago", emp:"bariloche", monto:41900, canal:"wsp", fecha:"05/11", res:"wait",
+   tipo:"C", pv:"0001", nro:"00000210", cae:"74188899900011", emi:"05/11/2025", rubro:"mantenimiento", cc:"—",
+   items:[["Materiales de mantenimiento","varios",41900]], remit:"+54 9 294 4xx xxxx", nuevo:true},
+];
+
+const PROV = [
+  {nm:"Frigorífico del Sur", sub:"carne · Buenos Aires", acum:1840000, tope:2000000, topeF:"$500k"},
+  {nm:"Distribuidora Andina", sub:"alimentos", acum:620000, tope:1200000, topeF:"$300k"},
+  {nm:"Estudio Conciliador Paz", sub:"legales", acum:240000, tope:800000, topeF:"$400k"},
+  {nm:"Camuzzi Gas", sub:"servicio público", acum:74190, tope:null, topeF:"—"},
+];
+
+const RES = {
+  ok:{pill:"ok", label:"Autorizada"},
+  wait:{pill:"wait", label:"En espera"},
+  no:{pill:"no", label:"Rechazada"},
+};
+
+// controles por factura
+function controles(f){
+  const c=[];
+  const remOk = f.causa!=="remitente";
+  c.push({cl:"Gate de identidad del remitente", cv:f.remit, s:remOk?"ok":"no"});
+  if(!remOk){ // corta acá
+    ["Extracción con IA","Tipo y sumas","Empresa por CUIT","Proveedor en maestro","Tope por factura","Tope mensual"].forEach(l=>c.push({cl:l,cv:"no evaluado",s:"na"}));
+    return c;
+  }
+  c.push({cl:"Extracción con IA", cv:"JSON completo", s:"ok"});
+  c.push({cl:"Tipo y sumas", cv:"Factura "+f.tipo+" · ok", s:"ok"});
+  c.push({cl:"Empresa por CUIT", cv:EMP[f.emp].nombre, s:"ok"});
+  c.push({cl:"Proveedor en maestro", cv:f.nuevo?"no existe":"ok", s:f.nuevo?"no":"ok"});
+  if(f.nuevo){
+    c.push({cl:"Tope por factura", cv:"pendiente de alta", s:"na"});
+    c.push({cl:"Tope mensual", cv:"pendiente de alta", s:"na"});
+  } else if(f.servicio){
+    c.push({cl:"Tope por factura", cv:"exento (servicio)", s:"ok"});
+    c.push({cl:"Tope mensual", cv:"exento (servicio)", s:"ok"});
+  } else {
+    const tf = f.causa==="tope";
+    c.push({cl:"Tope por factura", cv:tf?"supera $500.000":"dentro de límite", s:tf?"no":"ok"});
+    c.push({cl:"Tope mensual", cv:"dentro de límite", s:"ok"});
+  }
+  return c;
+}
+
+function verdict(f){
+  if(f.res==="ok") return {c:"ok", t:"Autorizada", d:"Cargada en CQR sin intervención."};
+  if(f.res==="wait") return {c:"wait", t:"En espera", d:"Proveedor nuevo: derivada a alta manual con doble control."};
+  if(f.causa==="remitente") return {c:"no", t:"Rechazada", d:"Remitente no habilitado para el rubro. Rebotada en el gate, sin leer la factura."};
+  return {c:"no", t:"Rechazada", d:"Supera el tope por factura del proveedor. Devuelta al origen con la causal."};
+}
+
+// --- render ---
+function renderFact(){
+  const rows = F.filter(f => (state.emp==="all"||f.emp===state.emp) && (state.resFilter==="all"||f.res===state.resFilter));
+  const body = document.getElementById("factBody");
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="6" class="emptytab">No hay facturas con este filtro para ${state.emp==="all"?"el grupo":EMP[state.emp].nombre}.</td></tr>`;
+  } else {
+    body.innerHTML = rows.map(f=>`
+      <tr onclick="openCbte(${f.id})">
+        <td>${f.prov}</td>
+        <td>${EMP[f.emp].nombre}</td>
+        <td class="num-cell">${money(f.monto)}</td>
+        <td class="chn">${CANAL[f.canal]}</td>
+        <td class="num-cell">${f.fecha}</td>
+        <td><span class="pill ${RES[f.res].pill}">${RES[f.res].label}</span></td>
+      </tr>`).join("");
+  }
+  const pend = F.filter(f => (state.emp==="all"||f.emp===state.emp) && f.res!=="ok").length;
+  document.getElementById("badgeFact").textContent = pend;
+}
+
+function renderKPIs(){
+  let proc,carg,esp,rech,note;
+  if(state.emp==="all"){
+    const v=Object.values(EMP);
+    proc=v.reduce((a,e)=>a+e.facturas,0); carg=v.reduce((a,e)=>a+e.cargadas,0);
+    esp=v.reduce((a,e)=>a+e.espera,0); rech=v.reduce((a,e)=>a+e.rech,0);
+    note="total del grupo";
+  } else {
+    const e=EMP[state.emp]; proc=e.facturas; carg=e.cargadas; esp=e.espera; rech=e.rech;
+    note=e.nombre;
+  }
+  document.getElementById("kProc").textContent=proc;
+  document.getElementById("kCarg").textContent=carg;
+  document.getElementById("kEsp").textContent=esp;
+  document.getElementById("kRech").textContent=rech;
+  document.getElementById("kProcNote").textContent=note;
+  document.getElementById("kCargNote").textContent=Math.round(carg/proc*100)+"% automáticas";
+}
+
+function renderEmp(){
+  document.getElementById("empGrid").innerHTML = Object.entries(EMP).map(([k,e])=>`
+    <div class="emp ${state.emp===k?'sel':''}" onclick="selectEmp('${k}')" title="Ver solo ${e.nombre}">
+      <h4>${e.nombre}</h4><div class="cuit">CUIT ${e.cuit}</div>
+      <div class="rows">
+        <div class="r"><span>Facturas · nov</span><b>${e.facturas}</b></div>
+        <div class="r"><span>Cargadas</span><b>${e.cargadas}</b></div>
+        <div class="r"><span>En espera</span><b>${e.espera}</b></div>
+        <div class="r big"><span>Monto mes</span><b>${e.monto}</b></div>
+      </div>
+    </div>`).join("");
+}
+
+// cambiar de razón social desde cualquier lado
+function selectEmp(k){
+  state.emp = k;
+  document.getElementById("empSel").value = k;
+  renderKPIs(); renderFact(); renderEmp();
+}
+
+function renderProv(){
+  document.getElementById("provList").innerHTML = PROV.map(p=>{
+    const pct = p.tope? Math.round(p.acum/p.tope*100) : 0;
+    const hi = pct>=85;
+    const right = p.tope? `${money(p.acum)} / ${money(p.tope)}` : `${money(p.acum)} / sin tope`;
+    const meta = p.tope? `${pct}% del tope mensual` : "servicio público · exento de tope";
+    return `<div class="prov" onclick="openProv('${p.nm.replace(/'/g,"")}')">
+      <div class="prov-top"><div class="nm">${p.nm}<small>${p.sub}</small></div><div class="amt">${right}</div></div>
+      ${p.tope?`<div class="bar ${hi?'hi':''}"><span style="width:${pct}%"></span></div>`:''}
+      <div class="prov-meta"><span>${meta}</span><span>tope x factura ${p.topeF}</span></div>
+    </div>`;
+  }).join("");
+}
+
+function renderResumen(){
+  const alerts = [
+    {mk:"no", html:`<b>Frigorífico del Sur</b> al 92% del tope mensual ($1,84M / $2M). Quedan 6 días de mes.`, meta:"hace 40m", fid:7},
+    {mk:"wait", html:`<b>Proveedor nuevo:</b> "Lavadero Patagonia" mandó factura para RH / Bariloche. Está en espera de alta.`, meta:"hace 2h", fid:3},
+    {mk:"no", html:`<b>Rechazo:</b> A&B Insumos llegó desde un remitente no habilitado para el rubro.`, meta:"hoy", fid:6},
+  ];
+  document.getElementById("alertList").innerHTML = alerts.map(a=>`
+    <button class="item click" onclick="openCbte(${a.fid})">
+      <span class="mk ${a.mk}"></span>
+      <span class="tx">${a.html}<div class="meta">${a.meta} · ver comprobante</div></span>
+      <span class="chev">›</span>
+    </button>`).join("");
+
+  const tasks = [
+    {t:"Rebote automático de factura no autorizada (A&B)", tag:"auto", label:"Automático"},
+    {t:"Derivar alta de \"Lavadero Patagonia\" al responsable", tag:"urg", label:"Urgente"},
+    {t:"Revisar tope de Frigorífico del Sur antes de fin de mes", tag:"urg", label:"Urgente"},
+    {t:"Confirmar plan de cuentas de Rochester Lobos con el contador", tag:"auto", label:"Esta semana"},
+  ];
+  document.getElementById("taskList").innerHTML = tasks.map(t=>`
+    <div class="item"><span class="tx">${t.t}</span><span class="tag ${t.tag}">${t.label}</span></div>`).join("");
+}
+
+// --- modal comprobante ---
+function cbteHTML(f){
+  const iva = f.tipo==="A" ? Math.round(f.items.reduce((a,i)=>a+i[2],0)*0.21) : 0;
+  const neto = f.items.reduce((a,i)=>a+i[2],0);
+  const total = f.monto;
+  const rows = f.items.map(i=>`<tr><td>${i[0]}</td><td class="num-cell">${i[1]}</td><td class="num-cell" style="text-align:right">${money(i[2])}</td></tr>`).join("");
+  const noRead = f.causa==="remitente";
+  return `
+  <div class="cbte">
+    <div class="cbte-top">
+      <div class="cbte-emisor"><div class="rz">${f.prov}</div><div class="ln">${f.rubro}</div><div class="ln">Factura ${f.tipo}</div></div>
+      <div class="cbte-letter"><div class="L">${f.tipo}</div><div class="cod">CÓD ${f.tipo==="A"?"01":f.tipo==="B"?"06":"11"}</div></div>
+      <div class="cbte-fact"><div class="big">FACTURA</div><div class="ln">N° ${f.pv}-${f.nro}</div><div class="ln">Fecha ${f.emi}</div></div>
+    </div>
+    <div class="cbte-rec">
+      <div><div class="fl">Receptor</div><div class="fv">${EMP[f.emp].nombre}</div></div>
+      <div><div class="fl">CUIT</div><div class="fv">${EMP[f.emp].cuit}</div></div>
+      <div><div class="fl">Cond. venta</div><div class="fv">Cta. Cte.</div></div>
+    </div>
+    <table><thead><tr><th>Detalle</th><th>Cant.</th><th style="text-align:right">Importe</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="cbte-tot">
+      ${f.tipo==="A"?`<div class="row"><span>Neto gravado</span><span>${money(neto)}</span></div><div class="row"><span>IVA 21%</span><span>${money(iva)}</span></div>`:``}
+      <div class="row total"><span>Total</span><span>${money(total)}</span></div>
+    </div>
+    <div class="cbte-cae">${noRead?`<span>CAE no leído — rebotada antes de procesar</span>`:`<span>CAE ${f.cae}</span><span>Vto. CAE ${f.emi}</span>`}</div>
+  </div>`;
+}
+
+function extractHTML(f){
+  if(f.causa==="remitente") return `<div class="extract">// no se procesó el contenido\n// rebotada en el gate de identidad</div>`;
+  return `<div class="extract">{
+  <span class="k">"emisor"</span>: "${f.prov}",
+  <span class="k">"tipo"</span>: "Factura ${f.tipo}",
+  <span class="k">"comprobante"</span>: "${f.pv}-${f.nro}",
+  <span class="k">"cae"</span>: "${f.cae}",
+  <span class="k">"empresa_receptora"</span>: "${EMP[f.emp].nombre}",
+  <span class="k">"cuit_receptor"</span>: "${EMP[f.emp].cuit}",
+  <span class="k">"total"</span>: ${f.monto},
+  <span class="k">"imputacion_cc"</span>: "${f.cc}",
+  <span class="k">"canal"</span>: "${f.canal}"
+}</div>`;
+}
+
+function openCbte(id){
+  const f = F.find(x=>x.id===id); if(!f) return;
+  const v = verdict(f);
+  const checks = controles(f).map(c=>`
+    <div class="check"><span class="s ${c.s}">${c.s==="ok"?"✓":c.s==="no"?"✕":"–"}</span><span class="cl">${c.cl}</span><span class="cv">${c.cv}</span></div>`).join("");
+  document.getElementById("mTitle").textContent = `${f.prov} · ${money(f.monto)}`;
+  document.getElementById("mBody").innerHTML = `
+    <div class="modal-sec"><div class="t">Comprobante original</div>${cbteHTML(f)}</div>
+    <div class="modal-sec"><div class="t">Lo que leyó la IA</div>${extractHTML(f)}</div>
+    <div class="modal-sec"><div class="t">Controles</div><div class="checks">${checks}</div>
+      <div class="verdict ${v.c}"><b>${v.t}.</b> ${v.d}</div>
+    </div>`;
+  showModal();
+}
+
+function openProv(nm){
+  const p = PROV.find(x=>x.nm.replace(/'/g,"")===nm); if(!p) return;
+  const movs = F.filter(f=>f.prov===p.nm);
+  const pct = p.tope? Math.round(p.acum/p.tope*100):0;
+  const list = movs.length? movs.map(f=>`
+    <tr onclick="openCbte(${f.id})"><td>${f.prov}</td><td class="num-cell">${money(f.monto)}</td><td class="num-cell">${f.fecha}</td><td><span class="pill ${RES[f.res].pill}">${RES[f.res].label}</span></td></tr>`).join("")
+    : `<tr><td colspan="4" style="color:var(--muted)">Sin movimientos este mes.</td></tr>`;
+  document.getElementById("mTitle").textContent = p.nm;
+  document.getElementById("mBody").innerHTML = `
+    <div class="modal-sec"><div class="t">Acumulado del mes</div>
+      <div class="prov" style="cursor:default;border:1px solid var(--line);border-radius:10px">
+        <div class="prov-top"><div class="nm">${p.nm}<small>${p.sub}</small></div><div class="amt">${p.tope?money(p.acum)+" / "+money(p.tope):money(p.acum)+" / sin tope"}</div></div>
+        ${p.tope?`<div class="bar ${pct>=85?'hi':''}"><span style="width:${pct}%"></span></div>`:''}
+        <div class="prov-meta"><span>${p.tope?pct+"% del tope mensual":"servicio público · exento"}</span><span>tope x factura ${p.topeF}</span></div>
+      </div>
+    </div>
+    <div class="modal-sec"><div class="t">Movimientos — tocá para ver el comprobante</div>
+      <div class="tablewrap" style="box-shadow:none"><table><thead><tr><th>Proveedor</th><th>Monto</th><th>Fecha</th><th>Resultado</th></tr></thead><tbody>${list}</tbody></table></div>
+    </div>`;
+  showModal();
+}
+
+function showModal(){document.getElementById("overlay").classList.add("show");document.body.style.overflow="hidden";}
+function hideModal(){document.getElementById("overlay").classList.remove("show");document.body.style.overflow="";}
+document.getElementById("mClose").onclick=hideModal;
+document.getElementById("overlay").onclick=e=>{if(e.target.id==="overlay")hideModal();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")hideModal();});
+
+// --- nav ---
+const CRUMB={resumen:"Operación · Resumen",facturas:"Operación · Facturas",proveedores:"Operación · Proveedores",empresas:"Operación · Empresas",asistente:"Inteligencia · Asistente",flujo:"Inteligencia · Flujo de decisión"};
+document.querySelectorAll("[data-view]").forEach(b=>{
+  b.addEventListener("click",()=>{
+    const v=b.dataset.view;
+    document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.view===v));
+    document.querySelectorAll(".section").forEach(s=>s.classList.toggle("show",s.id===v));
+    document.getElementById("crumb").textContent=CRUMB[v];
+    window.scrollTo(0,0);
+  });
+});
+
+// --- asistente (respuestas de muestra) ---
+const ANS={
+  "¿Qué está en espera?":"Hay 2 facturas en espera, las dos por proveedor nuevo: <b>Lavadero Patagonia</b> ($96.500, Bariloche) y <b>Ferretería del Lago</b> ($41.900, Bariloche). Ninguna se autocarga: van a alta manual con doble control.",
+  "¿Algún proveedor cerca del tope?":"Sí. <b>Frigorífico del Sur</b> está al <b>92%</b> del tope mensual ($1,84M de $2M) y quedan 6 días de mes. El resto está por debajo del 55%.",
+  "¿Qué se rechazó hoy?":"Una de <b>A&B Insumos</b> ($520.000): llegó desde <b>rrhh@rochester</b>, que no está habilitado para el rubro A&B, así que rebotó en el gate sin leerse. Y ayer, una de Frigorífico del Sur por superar el tope por factura.",
+  "Resumen del día":"148 procesadas en el mes, 132 ya cargadas en CQR (89% automáticas). Hoy: 2 en espera de alta y 1 rechazada por remitente. Nada más requiere tu decisión inmediata salvo el tope de Frigorífico.",
+};
+document.querySelectorAll(".chip").forEach(c=>{
+  c.addEventListener("click",()=>{
+    const q=c.textContent;
+    const chat=document.getElementById("chat");
+    chat.insertAdjacentHTML("beforeend",`<div class="bubble me"><div class="ai">WR</div><div class="msg">${q}</div></div>`);
+    setTimeout(()=>{chat.insertAdjacentHTML("beforeend",`<div class="bubble"><div class="ai">✦</div><div class="msg">${ANS[q]||"Puedo ayudarte con facturas, proveedores y topes."}</div></div>`);chat.scrollIntoView({block:"end"});},250);
+  });
+});
+
+// --- selector de razón social ---
+document.getElementById("empSel").addEventListener("change",e=>{
+  state.emp = e.target.value;
+  renderKPIs(); renderFact(); renderEmp();
+});
+
+// --- filtros de resultado en Facturas ---
+document.querySelectorAll("#factFilters .fbtn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.resFilter = b.dataset.f;
+    document.querySelectorAll("#factFilters .fbtn").forEach(x=>x.classList.toggle("active",x===b));
+    renderFact();
+  });
+});
+
+renderKPIs();renderFact();renderEmp();renderProv();renderResumen();
+</script>
+</body>
+</html>
