@@ -1,0 +1,11 @@
+{
+  "name": "rochester-cqr-connector",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  }
+}
