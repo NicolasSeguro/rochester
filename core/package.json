@@ -8,13 +8,22 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node --import tsx/esm src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "seed": "tsx src/scripts/seed-dev.ts",
+    "import:autorizaciones": "tsx src/scripts/importar-autorizaciones.ts",
+    "gmail:auth": "tsx src/scripts/gmail-auth.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "@fastify/cors": "^9.0.1",
     "drizzle-orm": "^0.44.2",
     "fastify": "^5.3.3",
+    "googleapis": "^189.0.0",
     "postgres": "^3.4.5",
     "zod": "^3.24.4"
   },
@@ -22,6 +31,7 @@
     "@types/node": "^22.15.21",
     "drizzle-kit": "^0.30.6",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^5.1.0"
   }
 }
